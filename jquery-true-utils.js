@@ -146,32 +146,38 @@
 (function($) {
   $.fn.trueCenter = function(options) {
     var settings = $.extend({
-      container: $(this).parent(),
       ignorePaddings: true
     }, options);
 
-    var container = settings.container;
-    if (typeof container === 'string') {
-      container = $(container);
-    }
+    return this.each(function() {
+      if (!settings.container) {
+        settings.container = $(this).parent();
+      } else {
+        if (typeof settings.container === 'string') {
+          settings.container = $(this).parents(settings.container);
+        }
+      }
 
-    // TODO: Asymetrical paddings.
-    var padding = { left: 0, top: 0 };
-    if (!settings.ignorePaddings) {
-      padding = {
-        left: (container.outerWidth() - container.width()) / 2,
-        top: (container.outerHeight() - container.height()) / 2
-      };
-    }
+      container = settings.container
 
-    var left = (container.width() - $(this).width()) / 2 + padding.left;
-    var top = (container.height() -  $(this).height()) / 2 + padding.top;
-    $(this).css({
-      'left': left + 'px',
-      'top': top + 'px'
+      // TODO: Asymetrical paddings.
+      var padding = { left: 0, top: 0 };
+      if (!settings.ignorePaddings) {
+        padding = {
+          left: (container.outerWidth() - container.width()) / 2,
+          top: (container.outerHeight() - container.height()) / 2
+        };
+      }
+
+      var left = (container.width() - $(this).width()) / 2 + padding.left;
+      var top = (container.height() -  $(this).height()) / 2 + padding.top;
+      $(this).css({
+        'left': left + 'px',
+        'top': top + 'px'
+      });
+
+      return this;
     });
-
-    return this;
   };
 }(jQuery));
 
@@ -214,42 +220,39 @@
     });
   };
 
-  $.fn.trueFit = function(options) {
+  $.fn.trueResize = function(options) {
     var settings = $.extend({
-      aspectRatio: true
+      method: 'fit',
+      preserveAspectRatio: true
     }, options);
 
-    if (!settings.size) {
-      if (!settings.container) {
-        settings.container = $(this).parent();
-      } else {
-        if (typeof settings.container === 'string') {
-          settings.container = $(settings.container);
+    return this.each(function() {
+      if (!settings.size) {
+        if (!settings.container) {
+          settings.container = $(this).parent();
+        } else {
+          if (typeof settings.container === 'string') {
+            settings.container = $(this).parents(settings.container);
+          }
+        }
+        settings.size = {
+          width: settings.container.width(),
+          height: settings.container.height(),
         }
       }
-      settings.size = {
-        width: settings.container.width(),
-        height: settings.container.height(),
-      }
-    }
 
-    resize($(this), settings.size, 'fit', settings.aspectRatio);
+      resize($(this), settings.size, settings.method, settings.preserveAspectRatio);
 
-    return this;
+      return this;
+    });
+  };
+
+  $.fn.trueFit = function(options) {
+    return $(this).trueResize(options, 'fit');
   };
 
   $.fn.trueFill = function(options) {
-    var settings = $.extend({
-      container: $(this).parent(),
-      aspectRatio: true
-    }, options);
-
-    var container = settings.container;
-    if (container instanceof 'String') {
-      container = $(container);
-    }
-
-    resize($(this), container, 'fit', settings.aspectRatio);
+    return $(this).trueResize(options, 'fill');
   };
 }(jQuery));
 
